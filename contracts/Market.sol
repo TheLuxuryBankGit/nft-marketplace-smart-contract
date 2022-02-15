@@ -26,10 +26,8 @@ contract NFTMarket is ReentrancyGuard {
     uint256 tokenId;
     address payable creator;
     address payable owner;
-    address payable SIO;
     uint256 price;
     uint256 royalty;
-    uint256 royaltyToSIO;
     bool sold;
   }
 
@@ -41,10 +39,8 @@ contract NFTMarket is ReentrancyGuard {
     uint256 indexed tokenId,
     address creator,
     address owner,
-    address SIO,
     uint256 price,
     uint256 royalty,
-    uint256 royaltyToSIO,
     bool sold
   );
 
@@ -54,18 +50,10 @@ contract NFTMarket is ReentrancyGuard {
     uint256 tokenId,
     uint256 price,
     uint256 royalty,
-    uint256 royaltySIO,
-    address SIO
   ) public payable nonReentrant {
 
     require(price > 0, "Price must be at least 1 wei");
     require(royalty >= 0, "Royalty must be at least 0");
-    require(royaltySIO >= 0, "RoyaltySIO must be at least 0");
-
-    if (SIO == address(0))
-    {
-      SIO = msg.sender;
-    }
 
     _itemIds.increment();
     uint256 itemId = _itemIds.current();
@@ -76,10 +64,8 @@ contract NFTMarket is ReentrancyGuard {
       tokenId,
       payable(msg.sender),
       payable(msg.sender),
-      payable(SIO),
       price,
       royalty,
-      royaltySIO,
       false
     );
 
@@ -91,10 +77,8 @@ contract NFTMarket is ReentrancyGuard {
       tokenId,
       msg.sender,
       address(0),
-      SIO,
       price,
       royalty,
-      royaltySIO,
       false
     );
   }
@@ -108,21 +92,18 @@ contract NFTMarket is ReentrancyGuard {
     uint price = idToMarketItem[itemId].price;
     uint tokenId = idToMarketItem[itemId].tokenId;
     uint royalty = idToMarketItem[itemId].royalty;
-    uint royaltyToSIO = idToMarketItem[itemId].royaltyToSIO;
     
     require(msg.value == price, "Please submit the asking price in order to complete the purchase");
 
-    idToMarketItem[itemId].owner.transfer(msg.value*(100-royalty-royaltyToSIO-1)/100);
+    idToMarketItem[itemId].owner.transfer(msg.value*(100-royalty)/100);
     
     idToMarketItem[itemId].creator.transfer(msg.value*(royalty)/100);
         
-    idToMarketItem[itemId].SIO.transfer(msg.value*(royaltyToSIO)/100);
-
     IERC721(nftContract).transferFrom(idToMarketItem[itemId].owner, msg.sender, tokenId);
     idToMarketItem[itemId].owner = payable(msg.sender);
     idToMarketItem[itemId].sold = true;
     _itemsSold.increment();
-    payable(owner).transfer(msg.value*1/100);
+    // payable(owner).transfer(msg.value*1/100);
   }
 
   /* Returns all unsold market items */
