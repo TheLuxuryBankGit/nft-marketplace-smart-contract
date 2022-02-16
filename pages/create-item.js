@@ -96,7 +96,7 @@ export default function CreateItem() {
     // let listingPrice = await contract.getListingPrice()
     // listingPrice = listingPrice.toString()
    
-    transaction = await contract.createMarketItem(nftaddress, tokenId, price, parseInt(formInput.royaltyToYou), parseInt(formInput.royaltyToSIO), formInput.SIO)
+    transaction = await contract.createMarketItem(nftaddress, tokenId, price, parseInt(formInput.royaltyToYou))
     await transaction.wait()
     updateMint(true)
     router.push('/')
